@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use TracePaddock in research, please cite the software as follows."
+type: software
+title: "TracePaddock"
+authors:
+  - family-names: "Xie"
+    given-names: "Geer"
+version: "0.5.2"

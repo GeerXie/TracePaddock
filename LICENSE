@@ -1,0 +1,47 @@
+TracePaddock Personal Learning and Noncommercial Research License
+
+Copyright (c) 2026 Geer Xie
+
+1. Scope and permission
+
+These terms apply to the TracePaddock software, documentation, and synthetic
+examples authored by Geer Xie and included in this repository. You receive a
+nonexclusive, royalty-free permission to use, copy, study, adapt, and
+redistribute those materials for personal learning or noncommercial research,
+subject to the conditions below.
+
+2. Internal training and evaluation
+
+You may use the materials for internal learning, training, and evaluation
+among colleagues, including within a commercial organization. This permission
+covers use for those purposes in a non-production setting, without use in
+production workflows or to create or provide client deliverables.
+
+3. Attribution and changes
+
+When you redistribute any of the materials or an adaptation, keep the
+copyright notice, credit Geer Xie as the original author, and include a copy
+of this license. Clearly identify any changes in the materials or in an
+accompanying change notice. Share them under the same permitted purposes and
+conditions. Recipients receive the permissions stated in this license.
+
+4. Commercial use
+
+Paid sale, paid licensing, bundling as part of a paid product or service,
+and other for-profit use require prior written permission from Geer Xie.
+The internal training and evaluation expressly permitted in section 2 may
+take place within a commercial organization.
+
+5. Third-party materials and platform permissions
+
+Third-party components and materials remain subject to their respective
+licenses, as identified in their notices. GitHub and its users retain the
+permissions provided by GitHub's applicable terms for a public repository,
+including viewing and forking through the service.
+
+6. Warranty and reservation of rights
+
+To the extent permitted by applicable law, the materials are provided as is
+and without warranty, express or implied. Rights and remedies that applicable
+law makes nonwaivable remain in effect. Geer Xie reserves all rights not
+expressly granted by this license or available under applicable law.

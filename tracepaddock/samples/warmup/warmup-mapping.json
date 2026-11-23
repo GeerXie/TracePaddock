@@ -1,0 +1,20 @@
+{
+  "format": "tracepaddock-valuemaps",
+  "version": 1,
+  "tables": [
+    {
+      "name": "TutorialAckStatus",
+      "unit": "",
+      "default": "Unmapped",
+      "rows": [
+        [0, 0, "Idle"],
+        [1, 1, "Waiting"],
+        [2, 2, "Acknowledged"],
+        [3, 3, "Timed out"]
+      ]
+    }
+  ],
+  "assignments": [
+    {"pattern": "TutorialAckStatus", "table": "TutorialAckStatus", "mode": "both", "lane": true}
+  ]
+}

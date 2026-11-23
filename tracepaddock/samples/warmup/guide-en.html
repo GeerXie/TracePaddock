@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TracePaddock · Quick warm-up</title>
+  <style>
+    body { max-width: 920px; margin: 24px auto; padding: 0 16px; font-family: "Segoe UI", sans-serif; line-height: 1.6; }
+    h1, h2, h3 { margin-top: 1.15em; }
+    th, td { padding: 6px 9px; vertical-align: top; text-align: left; }
+    th { border-bottom: 1px solid #82909e; }
+    code, pre { font-family: Consolas, monospace; }
+    pre { padding: 10px; border: 1px solid #82909e; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Quick warm-up</h1>
+  <p>Choose a lesson and click Open sample to load its recording (MF4) and view (PLT). All signal samples and CAN definitions are synthetic. Use File → Save view as if you want to keep your practice view.</p>
+  <p><a href="#plot">Plot and bit fields</a> · <a href="#processing">Signal processing</a> · <a href="#timing">DBC and timing</a> · <a href="#settings">Settings</a></p>
+
+  <a name="plot" id="plot"></a>
+  <h2>Plot, cursor and bit fields</h2>
+  <p><code>01-plot.mf4</code> simulates 12 seconds of speed tracking. The target steps from 36 to 54 km/h at 2 s and then to 42 km/h at 8 s.</p>
+  <ol>
+    <li>Press <b>X</b> to see all values at the cursor. With <code>TutorialSpeed</code> selected, click near 2 s and move toward 4 s to see the time and speed differences. Esc ends the measurement.</li>
+    <li>Drag in the plot to zoom in time. <b>P</b> and <b>N</b> move between time windows. Press Space to show the entire recording.</li>
+    <li>Press <b>E</b> to open the view editor. The left list holds the recorded channels. The right list contains the view entries and can include multiple copies of one channel. Compare the measured speed's <code>.2f</code> with the target's <code>.0f</code>. An empty format uses the default, initially <code>%g</code>. <code>8b</code> prints at least eight binary digits.</li>
+    <li>Set the speed reference lines to <code>45; 50; max</code> to draw two thresholds and the recorded maximum. The signal's Autoscaling option fits the extrema. The toolbar's Auto range sets a fitted display range for each analog curve on demand. By unit gives both speeds the same scale. Unit bands places signals with the same unit in the same band.</li>
+  </ol>
+  <p>At 7.5 s <code>TutorialFlags</code> is 91, displayed as <code>01011011</code>. BIT-P counts from the right, starting at 0. BIT-C is the number of consecutive bits to extract.</p>
+  <ul>
+    <li><b>DIGITAL-1-Bit</b> at P=1 reads the limited flag as 1.</li>
+    <li><b>DIGITAL-N-Bit</b> at P=2 and C=2 reads <code>10</code> as 2.</li>
+    <li>Enable the two trim entries in the editor. At P=4 and C=3 both read <code>101</code>. The unsigned entry gives 4 + 1 = 5. The signed two's-complement entry gives −4 + 1 = −3.</li>
+  </ul>
+  <p><code>TutorialDriveMode</code> has an embedded text table. Change Value display to compare <code>Limited</code>, <code>Limited (2)</code>, and <code>2</code>. Enable Show as state band to see the <code>Limited</code> interval between 7 and 9 s above the curves.</p>
+
+  <a name="processing" id="processing"></a>
+  <h2>Processing and derived signals</h2>
+  <p><code>02-processing.mf4</code> contains a speed baseline, a noisy version, and a reference acceleration, sampled every 10 ms. Press E to enable the optional copies. To make your own, select a signal and choose Signals → Duplicate selected signal with processing.</p>
+  <table>
+    <thead><tr><th>Attribute</th><th>What you can observe</th></tr></thead>
+    <tbody>
+      <tr><td><code>dgf=bth:3:2</code></td><td>A second-order 3 Hz Butterworth low-pass smooths the speed with some delay. Use positive frequencies below the 50 Hz Nyquist limit here and orders from 1 to 20. The attribute also supports Chebyshev <code>chb1</code> or <code>chb2</code> with a dB parameter, and <code>pdt1</code> or <code>pdt2</code> with filter coefficients.</td></tr>
+      <tr><td><code>mavr(-10)</code></td><td>Average the current raw sample and up to nine preceding samples. Positive <code>mavr(10)</code> looks forward. A repeated value contributes once per sample.</td></tr>
+      <tr><td><code>diff</code></td><td>Divide the difference of adjacent values by their time interval. Compare the derivative of speed with the reference acceleration after the initial sample.</td></tr>
+      <tr><td><code>integ</code></td><td>Accumulate the area from time zero using each previous value over its sample interval. The speed baseline integrates to about 73.50 m at 7.5 s.</td></tr>
+      <tr><td><code>-mean</code></td><td>Subtract the mean of the full processed series from every sample.</td></tr>
+      <tr><td><code>exp=3.6*x</code></td><td>Convert m/s to km/h, then set the output unit to km/h. To compare two signals, try <code>exp(x1=TutorialSpeedBaseline)=x-x1</code> on a copy of the noisy speed.</td></tr>
+    </tbody>
+  </table>
+  <p>A ten-point backward average of <code>1, 1, 1, 1, 2, 2, 2, 5, 5, 5</code> is 2.5. If the next raw sample is 3, remove the oldest 1 and include 3. The new result is (25 − 1 + 3) / 10 = 2.7.</p>
+  <p>Other attributes include <code>min</code>, <code>max</code>, <code>-min</code>, <code>-max</code>, <code>shift(3)</code>, and <code>revert</code>. The application runs attributes in the order entered.</p>
+
+  <a name="timing" id="timing"></a>
+  <h2>DBC, states and timing checks</h2>
+  <p><code>03-timing.mf4</code> has requests at 2 s and 6 s. Load <code>warmup-signals.dbc</code> under Configuration → Signal databases. Look up <code>TutorialInputTravel</code> to see its nominal 20 ms cycle, 0.5% resolution, and 0–100% range. The viewer matches names to channels already recorded.</p>
+  <ol>
+    <li>Take the DBC value tables over as value mappings. Or import <code>warmup-mapping.json</code> from Configuration → Value mapping to load the practice table and enable its state band.</li>
+    <li>With <code>TutorialAckStatus</code> selected, inspect the mapping from codes 0–3 to <code>Idle</code>, <code>Waiting</code>, <code>Acknowledged</code>, and <code>Timed out</code>. Try switching the display between labels, raw values, and both.</li>
+    <li>You can create a table from scratch or start from the observed signal values. Use the Table selector to assign it to a signal. You can specify a default label for unmapped values. Numeric-only mappings can also produce a calculated signal.</li>
+  </ol>
+  <h3>Preview a response check</h3>
+  <p>Paste the following into Analysis → Python script and click Run (preview).</p>
+  <pre>rule(
+    "Request response time",
+    trigger=becomes((S("TutorialEnabled") == 1) &amp; (S("TutorialRequest") == 1)),
+    expect=S("TutorialAck") == 1,
+    within=(0.0, 0.50),
+    record=["TutorialAckStatus"],
+)</pre>
+  <p>The first request at 2.00 s passes with a 0.24 s delay. The second request at 6.00 s fails because its acknowledgement comes at 6.72 s. To jump from a result to the plot, save the script to the rule list, press F5, and double-click the event.</p>
+
+  <a name="settings" id="settings"></a>
+  <h2>Settings</h2>
+  <ul>
+    <li>The first launch uses the dark <b>Obsidian</b> theme. Switch themes in View → Theme, or adjust the line width, grid and legend in View → Appearance.</li>
+    <li><b>General</b> controls recent-item limits, whether to keep the current view when opening another recording, and the background used for print and image exports.</li>
+    <li><b>Names of new signals</b> previews display-name shortening on a synthetic name. The saved reference still uses the recording's name.</li>
+    <li><b>Processing and statistics</b> selects the time basis for calculations and statistics. It also controls processing on irregular samples, access to disabled entries, and how missing calculation inputs are handled.</li>
+  </ul>
+</body>
+</html>

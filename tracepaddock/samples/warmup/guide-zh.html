@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TracePaddock · 快速上手</title>
+  <style>
+    body { max-width: 920px; margin: 24px auto; padding: 0 16px; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; line-height: 1.6; }
+    h1, h2, h3 { margin-top: 1.15em; }
+    th, td { padding: 6px 9px; vertical-align: top; text-align: left; }
+    th { border-bottom: 1px solid #82909e; }
+    code, pre { font-family: Consolas, monospace; }
+    pre { padding: 10px; border: 1px solid #82909e; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>快速上手</h1>
+  <p>这三段样例从看波形练到核对响应时序。所有信号、数值和 CAN 定义均为教学合成。选中一课后点击「打开样例」会同时打开该课的录制（MF4）和视图（PLT）。需要保留自己的练习设置时，用「文件 → View 另存为」。</p>
+  <p><a href="#plot">波形与位域</a> · <a href="#processing">信号处理</a> · <a href="#timing">DBC 与时序检查</a> · <a href="#settings">设置速查</a></p>
+
+  <a name="plot" id="plot"></a>
+  <h2>波形、光标与位域</h2>
+  <p><code>01-plot.mf4</code> 模拟一段 12 秒的车速跟踪。目标值在 2 s 从 36 跳到 54 km/h，在 8 s 改为 42 km/h。实际车速有延迟，也有小幅波动。</p>
+  <ol>
+    <li>按 <b>X</b> 打开竖直时间参考线，沿时间轴左右移动鼠标。图例会显示该时刻的各路读数。选中 <code>TutorialSpeed</code>，在约 2 s 单击确定测量起点，再移动到约 4 s，状态栏会显示时间差和所选信号的数值差。按 Esc 可退出当前测量。</li>
+    <li>在图里拖框放大时间轴。放大后可用 <b>P</b> / <b>N</b> 前后翻页，按空格回到全图。按 <b>E</b> 打开信号编辑器，左侧是录制中的信号，右侧是当前视图的条目。同一条原始信号可以在视图里出现多次，分别设置显示属性或计算方式。</li>
+    <li>比较 <code>TutorialSpeed</code> 的 <code>.2f</code> 和 <code>TutorialTargetSpeed</code> 的 <code>.0f</code>。前者固定显示两位小数，后者把显示值舍入到整数位。留空时使用当前的默认数值格式，默认是 <code>%g</code>，小数位随数值变化。<code>TutorialFlags</code> 用 <code>8b</code> 显示至少八位二进制。显示格式只改变读数的写法。</li>
+    <li>把 <code>TutorialSpeed</code> 的参考线从 <code>50</code> 改为 <code>45; 50; max</code>，观察两个固定阈值和实测最大值三条水平线。<code>min</code>、<code>max</code> 和 <code>mean</code> 分别按信号的最小值、最大值和平均值定位。单位栏设置显示单位，也参与按单位分组。要把 m/s 的数值换算为 km/h，可在副本上应用 <code>exp=3.6*x</code>，再把单位写成 <code>km/h</code>。</li>
+    <li>两条车速放在相同纵轴范围时，同一高度表示同一速度。单条信号的「自动缩放」根据该信号的样本最小值和最大值确定纵轴范围，并留出边距。顶部「自动量程」一次为各模拟信号设置适合的范围。两条车速也可以用「按单位」统一刻度，或用「单位分条」让同单位的信号留在同一条带内。</li>
+  </ol>
+  <h3>从同一个字节取三种含义</h3>
+  <p>把时间移到约 7.5 s。原始的 <code>TutorialFlags</code> 此时是十进制 91，图例显示为 <code>01011011</code>。<b>BIT-P</b> 从最右边的第 0 位开始计数，<b>BIT-C</b> 表示取几个连续位。要比较最后两行，在信号编辑器里启用 <code>TutorialTrimUnsigned</code> 和 <code>TutorialTrimSigned</code>。</p>
+  <table>
+    <thead><tr><th>选项</th><th>本例</th><th>读数</th></tr></thead>
+    <tbody>
+      <tr><td>DIGITAL-1-Bit</td><td><code>TutorialLimitedFlag</code>，P=1，取一位</td><td>1。单个标志适合观察开关、故障或有效位。</td></tr>
+      <tr><td>DIGITAL-N-Bit</td><td><code>TutorialModeBits</code>，P=2，C=2</td><td><code>10</code>，即 2。多位无符号值可表示模式或计数。</td></tr>
+      <tr><td>DIGITAL-N-Bit SIGNED</td><td><code>TutorialTrimSigned</code>，P=4，C=3</td><td><code>101</code>，三位二补码是 −4 + 0 + 1 = −3；同样三位无符号读作 4 + 0 + 1 = 5。</td></tr>
+    </tbody>
+  </table>
+  <p>每向左一位，二进制的权重翻倍，所以三位无符号的权重是 4、2、1。二补码把最高位用于负权重，得到 −4、2、1。此处位域读取的是录制里已有的整数通道。DBC 的起始位和字节序定义的是 CAN 报文字节里的布局。</p>
+  <p><code>TutorialDriveMode</code> 自带文本表。在信号编辑器里选它，切换「数值显示」，比较 <code>Limited</code>、<code>Limited (2)</code> 和 <code>2</code>。勾选「以状态条显示」后，模式会按时间分段，能清楚看见 7–9 s 的 <code>Limited</code> 区间。</p>
+
+  <a name="processing" id="processing"></a>
+  <h2>信号处理与计算信号</h2>
+  <p><code>02-processing.mf4</code> 含同一条车速的干净基线、含噪版本和基线的理论加速度。采样周期是 10 ms。先看已经启用的条目，再按 E 启用隐藏的副本，对照下表。要自行创建，选中原信号后使用「信号 → 复制所选信号并做处理」，或在信号编辑器里复制后填写「属性」。</p>
+  <table>
+    <thead><tr><th>属性</th><th>本例的观察点</th></tr></thead>
+    <tbody>
+      <tr><td><code>dgf=bth:3:2</code></td><td><code>TutorialFilteredSpeed</code> 用 3 Hz 截止频率、二阶 Butterworth 低通抑制含噪速度的高频波动。放大能看出滤波后波形的滞后。对本课 100 Hz 的采样，截止频率必须大于零且小于 50 Hz，阶数支持 1–20。属性也支持 <code>chb1</code>、<code>chb2</code>（还需给出 dB 参数）以及直接给系数的 <code>pdt1</code>、<code>pdt2</code>。</td></tr>
+      <tr><td><code>mavr(-10)</code></td><td><code>TutorialAverageSpeed</code> 取当前原始样本和前面最多 9 个原始样本的平均。<code>mavr(10)</code> 则向后看当前和接下来最多 9 个样本。相同数值的每个采样点都计入，窗口边缘用实际可用的样本数。</td></tr>
+      <tr><td><code>diff</code></td><td><code>TutorialDerivative</code> 用相邻样本的数值差除以时间差。以 m/s 为输入时得到 m/s²。与 <code>TutorialAcceleration</code> 对比；第一点显示 0，两条曲线后续接近。</td></tr>
+      <tr><td><code>integ</code></td><td><code>TutorialDistance</code> 从 0 累加，以前一采样值乘两点间隔。输入 m/s 后输出 m。比较 7.5 s 处约 73.50 m 的读数。</td></tr>
+      <tr><td><code>-mean</code></td><td><code>TutorialSpeedCentered</code> 从每个样本减去整段信号的均值，观察零线两侧的波动。放大时间轴后仍使用整段计算出的均值。</td></tr>
+      <tr><td><code>exp=3.6*x</code></td><td><code>TutorialSpeedKmh</code> 把 m/s 乘以 3.6，得到 km/h。需要两条信号的差值时，可对含噪速度的副本用 <code>exp(x1=TutorialSpeedBaseline)=x-x1</code>。</td></tr>
+    </tbody>
+  </table>
+  <p>用 10 点后向滑动平均计算 <code>1, 1, 1, 1, 2, 2, 2, 5, 5, 5</code>，第 10 点输出 2.5。第 11 个原始样本为 3 时，窗口去掉最早的 1，加入 3，输出为 <b>(25 − 1 + 3) / 10 = 2.7</b>。对一段完整窗口内恒定的信号，输出仍等于这个常数。</p>
+  <p>属性栏的占位文字列的是常用示例。除了上表，用 <code>min</code>、<code>max</code> 可输出整段信号的最小值或最大值；<code>-min</code>、<code>-max</code> 则从每个样本减去相应极值。<code>shift(3)</code> 向后平移 3 个样本，<code>revert</code> 反转样本顺序。多个属性按照书写顺序执行。</p>
+
+  <a name="timing" id="timing"></a>
+  <h2>DBC、状态条与时序检查</h2>
+  <p><code>03-timing.mf4</code> 有两次合成请求，分别起于 2 s 和 6 s。记录中已有每个通道的采样。<code>warmup-signals.dbc</code> 为它们提供信号描述、单位、周期、分辨率和枚举定义。</p>
+  <ol>
+    <li>打开「配置 → 信号数据库（DBC / CAN 矩阵）」并添加 <code>warmup-signals.dbc</code>。搜索 <code>TutorialInputTravel</code>，可看到 20 ms 周期、0.5% 分辨率和 0–100% 量程。分辨率是步长，可以作为比较容差的参考。程序按录制通道名关联；导入后可在信号信息中查看匹配到的定义。</li>
+    <li>点击「把数值表加入数值映射」，把 <code>TutorialAckStatus</code> 的 0、1、2、3 对应到 <code>Idle</code>、<code>Waiting</code>、<code>Acknowledged</code>、<code>Timed out</code>。也可以走「配置 → 数值映射 → 导入」并选择 <code>warmup-mapping.json</code>，直接加载含状态条开关的演示设置。</li>
+    <li>在数值映射窗口里可用「新建」手工建表，或用「按信号出现过的值新建」列出录制里出现的码值。表的左列填原始码值，中间列填文字或等价数字，上方「表」选择应用到当前信号的表。「其它值显示为」留空时，未命中的码值显示原始数值。若逻辑值全为数字，可用「把逻辑值生成数值信号」生成用于计算的曲线。</li>
+    <li>在编辑器里选 <code>TutorialAckStatus</code>，打开「以状态条显示」。第一次请求会出现 <code>Waiting</code> 到 <code>Acknowledged</code> 的变化；第二次在 6.50–6.72 s 先显示 <code>Timed out</code>。这些自定义表和规则保存在数值映射库中，能在下一段同名信号上复用。</li>
+  </ol>
+  <h3>跑一次规则预览</h3>
+  <p>打开「分析 → Python 脚本」，替换编辑区内容，然后点「运行（预览）」。这个例子要求总使能有效、请求从假变真之后，确认信号在 0.50 s 内变为 1。</p>
+  <pre>rule(
+    "请求响应时序",
+    trigger=becomes((S("TutorialEnabled") == 1) &amp; (S("TutorialRequest") == 1)),
+    expect=S("TutorialAck") == 1,
+    within=(0.0, 0.50),
+    record=["TutorialAckStatus"],
+)</pre>
+  <p>预期 2.00 s 的事件通过，确认在 2.24 s，延迟 0.24 s。6.00 s 的事件失败，实际确认出现在 6.72 s，超过 6.50 s 的时限。想从波形定位事件，可将脚本保存到规则列表，按 F5 运行后在事件表里双击相应条目。</p>
+
+  <a name="settings" id="settings"></a>
+  <h2>设置速查</h2>
+  <ul>
+    <li>首次启动使用<b>曜石</b>深色主题。可在「视图 → 主题」切换到浅色主题，或在「视图 → 外观设置」调整波形线宽、网格和图例。</li>
+    <li><b>常规</b>控制最近文件和视图历史保留的条数、换录制时是否沿用当前视图、打印或导出图片时是否使用白底。</li>
+    <li><b>新信号的名称</b>决定从录制添加新信号时，显示名称如何对点号分段、设备后缀等做缩写。可在预览框试验虚构的 <code>DemoRig.Thermal.CoolingFan.Speed</code>，录制名称仍可用于匹配。</li>
+    <li><b>信号处理和统计</b>决定处理按各信号自己的采样点还是录制的公共时间轴计算，并控制不等距采样、统计口径、公式能否读取隐藏条目，以及缺少输入时如何显示计算信号。</li>
+  </ul>
+</body>
+</html>

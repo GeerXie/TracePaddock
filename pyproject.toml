@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "TracePaddock"
+version = "0.5.2"
+description = "Offline automotive recording, waveform and rule analysis"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = "LicenseRef-TracePaddock-Personal-Research"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "Geer Xie"}]
+dependencies = [
+    "numpy>=1.24,<2",
+    "scipy>=1.9",
+    "PySide6-Essentials==6.11.3",
+    "asammdf==7.4.5",
+    "canmatrix>=1.0,<2",
+    "openpyxl>=3,<4",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7,<9"]
+build = ["PyInstaller==6.22.3", "Pillow>=10"]
+
+[project.gui-scripts]
+tracepaddock = "tracepaddock.__main__:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools.packages.find]
+include = ["tracepaddock*"]
+
+[tool.setuptools.package-data]
+tracepaddock = ["samples/warmup/*", "plugins/*.py"]

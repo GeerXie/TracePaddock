@@ -1,0 +1,23 @@
+VERSION "Synthetic warm-up signal definitions"
+
+BU_: TutorialSender TutorialReceiver
+
+BO_ 801 TutorialHandshake: 8 TutorialSender
+ SG_ TutorialEnabled : 0|1@1+ (1,0) [0|1] "" TutorialReceiver
+ SG_ TutorialRequest : 1|1@1+ (1,0) [0|1] "" TutorialReceiver
+ SG_ TutorialAck : 2|1@1+ (1,0) [0|1] "" TutorialReceiver
+ SG_ TutorialAckStatus : 3|2@1+ (1,0) [0|3] "" TutorialReceiver
+ SG_ TutorialInputTravel : 8|8@1+ (0.5,0) [0|100] "%" TutorialReceiver
+
+CM_ SG_ 801 TutorialAckStatus "State of the synthetic handshake";
+CM_ SG_ 801 TutorialInputTravel "Synthetic travel chosen in half-percent increments";
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 65535;
+BA_DEF_ BO_  "GenMsgSendType" ENUM "Cyclic","Event";
+BA_DEF_DEF_  "GenMsgCycleTime" 0;
+BA_DEF_DEF_  "GenMsgSendType" "Cyclic";
+BA_ "GenMsgCycleTime" BO_ 801 20;
+BA_ "GenMsgSendType" BO_ 801 0;
+VAL_ 801 TutorialEnabled 0 "Off" 1 "On" ;
+VAL_ 801 TutorialRequest 0 "Idle" 1 "Requested" ;
+VAL_ 801 TutorialAck 0 "Idle" 1 "Acknowledged" ;
+VAL_ 801 TutorialAckStatus 0 "Idle" 1 "Waiting" 2 "Acknowledged" 3 "Timed out" ;
